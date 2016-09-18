@@ -1,0 +1,13 @@
+-1 = streetX = element intance number [0]
+-2 = streetZ = element intance number [1]
+-3 = crossroad= element intance number [2]
+-4 = endX= element intance number [3]
+-5 = endZ= element intance number [4]
+-6 = jointX= element intance number [5]
+-7 = jointZ= element intance number [6]
+-8 = stopX= element intance number [7]
+-9 = stopZ= element intance number[8]
+
+
+-8 = jointY= element intance number [7]
+-9 = jointW= element intance number[8]
