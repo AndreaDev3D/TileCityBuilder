@@ -2,6 +2,7 @@
 using System.Collections;
 //using UnityEditor;//<------abilitalo per salvare il prefab
 using UnityEngine.UI;
+using Assets.SCGenerator.Scripts.Helper;
 
 public class SquereCityGenerato : MonoBehaviour {
     #region CityVariable
@@ -17,16 +18,15 @@ public class SquereCityGenerato : MonoBehaviour {
     int[,] mapgrid;
     public int mapWidth = 20;
     public int mapHeight = 20;
-    public int buildingFootprint = 1;
+    public int buildingFootprint = 10;
     public int RandWidth = 3;
-    public int RandHeight = 3;
+    public int RandHeight = 5;
     public GameObject CamTarget;
 
-    private GameObject FPS_Prefab;
     private GameObject SCG_Generator;
     public GameObject SCG_Prefab;
     public GameObject SCG_camTarget;
-    private Camera camera;
+    private Camera Camera;
     #endregion
     #region UI Element
     public Slider mapSizeSlider;
@@ -40,7 +40,6 @@ public class SquereCityGenerato : MonoBehaviour {
     public Toggle GenerateLightToggle;
     public Toggle GenerateRoadToggle;
     public Toggle GeneratePropToggle;
-    public Toggle FPS_mode;
     #endregion
 
     void Start() {
@@ -64,126 +63,109 @@ public class SquereCityGenerato : MonoBehaviour {
         GenerateCity();
         StartCoroutine(ResestText());
         //FPS_Prefab
-        FPS_Prefab = GameObject.Find("FPS_Prefab");
-        FPS_Prefab.SetActive(false);
-        camera = Camera.main;
     }
+
     IEnumerator ResestText() {
         yield return new WaitForSeconds(3);
         if (InteractiveText.ToString() != "")
             InteractiveText.text = "";
     }
+
     void Update() {
-        #region Update Map Info
+
         int myMapSize = (int)mapSizeSlider.value;
         mapHeight = myMapSize;
         mapWidth = myMapSize;
         mapSizeValue.text = myMapSize.ToString();
+
         int myRWText = (int)RandWidthSlider.value;
         RandWidth = myRWText;
         mapRandWValue.text = myRWText.ToString();
+
         int myRHText = (int)RandHaightSlider.value;
         RandHeight = myRHText;
         mapRAndHValue.text = myRHText.ToString();
-        #endregion
-        #region camUpdate
+
         SCG_camTarget.transform.position = new Vector3(mapWidth * buildingFootprint / 2, 0, mapHeight * buildingFootprint / 2);
-        #endregion
-        #region ToggleUpdate
+
         GenerateBuilding = GenerateBuildingToggle.isOn;
         GenerateRoad = GenerateRoadToggle.isOn;
         GenerateLight = GenerateLightToggle.isOn;
         GenerateProp = GeneratePropToggle.isOn;
-        if (FPS_mode.isOn) {
-            FPS_Prefab.SetActive(true);
-            camera.gameObject.SetActive(false);
-        }
-        else {
-            FPS_Prefab.SetActive(false);
-            camera.gameObject.SetActive(true);
-        }
-        #endregion
-
-
     }
+
     public void GenerateCity() {
-        #region generate map data
+
+        // Initialize Matrix
         mapgrid = new int[mapWidth, mapHeight];
-        for (int h = 0; h < mapHeight; h++) {
-            for (int w = 0; w < mapWidth; w++) {
-                /*int perlSize = building.Length + road.Length;
-                float mW = mapWidth * 1f;
-                float mH = mapHeight * 1f;
-                float w2 = w * 1f;
-                float h2 = h * 1f;
-                float pX = (w2) / mW;
-                float pY = (h2) / mH;
-                float randFactor = 5f;
-                float oX = Random.RandomRange(0f, mW / randFactor) / mW;
-                float oY = Random.RandomRange(0f, mH / randFactor) / mH;
-                mapgrid[w, h] = (int)(Mathf.PerlinNoise(pX, pY) * perlSize); //!ERRORE PERLIN FLOAT 0<x<1*/
-
-                mapgrid[w,h]=0;
-            }
-        }
-        #endregion
-
-        #region generate cross and joint 
-        int x = 2;//we start from 2 to prevent the road on the border of the matrix
-        for (int n = 0; n < mapHeight; n++) {
-            for (int h = 0; h < mapHeight; h++) {
-                //road
-                int RR = Random.Range(0, mapHeight);
-                 mapgrid[x, h] = -3;//place vertical road Z
-                    mapgrid[x+1 , h] = 1;//place building on left n right verticali road for 
-                    mapgrid[x-1, h] = 1;//place building on left n right verticali road for
-                //end Road
-                if (h == mapWidth-1) {
-                    mapgrid[x, h] = -5;//place StreetZ
-                }
-                if (h == 0) {
-                    mapgrid[x, h] = -10;
-                }
-            }
-            x += Random.Range(RandWidth * 2, RandHeight);
-            if (x >= mapWidth - 1) break;
-        }
-        int z = 2;//we start from 2 to prevent the road on the border of the matrix
-        for (int n = 0; n < mapWidth; n++) {
-            for (int w = 0; w < mapWidth; w++) {
-                //road
-                if (mapgrid[w, z] == -3) {
-                    mapgrid[w, z] = -1;//place cross road
-                    mapgrid[w-1, z] = -6;//place stopX 
-                    mapgrid[w + 1, z] = -6;//place stopX 
-                    if (w != mapHeight - 1) {
-                    mapgrid[w, z+1] = -7;
-                    mapgrid[w, z - 1] = -7;
-                    mapgrid[w - 1, z] = -6;//place stopX 
-                    mapgrid[w + 1, z] = -6;//place stopX 
+        var rnd = new System.Random();
+        for (int n = 0; n < mapHeight; n++)
+        {
+            var res = rnd.Next(0, mapHeight * RandHeight);
+            if (res < mapWidth || mapgrid[n-1, 0] == -3)
+            {
+                for (int h = 0; h < mapWidth; h++)
+                {
+                    //road
+                    int RR = Random.Range(0, mapHeight);
+                    mapgrid[n, h] = -3;//place vertical road Z
+                                       //mapgrid[n + 1 , h] = 1;//place building on left n right verticali road for 
+                                       //mapgrid[n - 1, h] = 1;//place building on left n right verticali road for
+                                       //end Road
+                    if (h == mapWidth - 1)
+                    {
+                        mapgrid[n, h] = -5;//place StreetZ
+                    }
+                    if (h == 0)
+                    {
+                        mapgrid[n, h] = -10;
                     }
                 }
-                else {
-                    mapgrid[w, z] = -2;//place orizontal road Z
-                    mapgrid[w, z + 1] = 1;//place building on left n right orizontali road for roadZ
-                    mapgrid[w, z - 1] = 1;//place building on left n right orizontali road for roadZ
-                }
-                //end Road
-                if (w == mapHeight - 1) {
-                    mapgrid[w, z] = -4;
-                }
-                if (w == 0) {
-                    mapgrid[w, z] = -11;
+            }
+        }
+
+        rnd = new System.Random();
+        for (int h = 0; h < mapHeight; h++)
+        {
+            var res = rnd.Next(0, mapWidth * RandWidth);
+            if (res < mapWidth)
+            {
+                for (int w = 0; w < mapWidth; w++)
+                {
+                    //road
+                    if (mapgrid[w, h] == -3) {
+                                mapgrid[w, h] = -1;//place cross road
+                    //        //    mapgrid[w-1, h] = -6;//place stopX 
+                    //        //    mapgrid[w + 1, h] = -6;//place stopX 
+                    //        //    if (w != mapHeight - 1) {
+                    //        //    mapgrid[w, h + 1] = -7;
+                    //        //    mapgrid[w, h - 1] = -7;
+                    //        //    mapgrid[w - 1, h] = -6;//place stopX 
+                    //        //    mapgrid[w + 1, h] = -6;//place stopX 
+                    //        //    }
+                            }
+                     else {
+                        mapgrid[w, h] = -2;//place orizontal road Z
+                    //            //mapgrid[w, h + 1] = 1;//place building on left n right orizontali road for roadZ
+                    //            //mapgrid[w, h - 1] = 1;//place building on left n right orizontali road for roadZ
+                    }
+                    //end Road
+                    if (w == mapHeight - 1)
+                    {
+                        mapgrid[w, h] = -4;
+                    }
+                    if (w == 0)
+                    {
+                        mapgrid[w, h] = -11;
+                    }
                 }
             }
-            z += Random.Range(RandHeight, RandWidth);
-            if (z >= mapHeight - 1) break;
         }
-        #endregion
 
         #region generate city data
+
         for (int h = 0; h < mapHeight; h++) {
-            for (int w = 0; w < mapHeight; w++) {
+            for (int w = 0; w < mapWidth; w++) {
                 int result = mapgrid[w, h];
                 Vector3 pos = new Vector3(w * buildingFootprint, 0, h * buildingFootprint);
                 if (GenerateRoad) {
@@ -207,12 +189,14 @@ public class SquereCityGenerato : MonoBehaviour {
 
         InteractiveText.text = "City has been Generated";
     }
+
     public void PickaBuilding(int result, Vector3 pos) {
         var BuildingXlist = building.Length;
         int objXindex = Random.Range(0, BuildingXlist);
         if (result == 1)
             Instantiate(building[objXindex], pos, Quaternion.identity, SCG_Prefab.transform);
     }
+
     public void PickaLight(int result, Vector3 pos) {
         if (result == -1) {
             Instantiate(light[0], pos, light[0].transform.rotation, SCG_Prefab.transform);//CrossRoad light 
@@ -224,6 +208,7 @@ public class SquereCityGenerato : MonoBehaviour {
             Instantiate(light[2], pos, light[2].transform.rotation, SCG_Prefab.transform);//streetZ light 
         }
     }
+
     public void InstancietRoad(int result, Vector3 pos) {
         if (result == 0) {
             Instantiate(road[0], pos, Quaternion.identity, SCG_Prefab.transform);//empty element 
@@ -262,6 +247,7 @@ public class SquereCityGenerato : MonoBehaviour {
             Instantiate(road[11], pos, Quaternion.Euler(0, 180, 0), SCG_Prefab.transform);//endX down 
         }
     }
+
     public void PickaObjX(int result, Vector3 pos) {
         var objXlist = objX.Length;
         int objXindex = Random.Range(0, objXlist);
@@ -269,6 +255,7 @@ public class SquereCityGenerato : MonoBehaviour {
             Instantiate(objX[objXindex], pos, Quaternion.identity, SCG_Prefab.transform);
         }
     }
+
     public void PickaObjZ(int result, Vector3 pos) {
         var objZlist = objZ.Length;
         int objZindex = Random.Range(0, objZlist);
@@ -276,6 +263,7 @@ public class SquereCityGenerato : MonoBehaviour {
             Instantiate(objZ[objZindex], pos, Quaternion.identity, SCG_Prefab.transform);
         }
     }
+
     public void ClearCity() {
         GameObject obj = SCG_Prefab;
         foreach (Transform child in obj.transform) {
@@ -283,6 +271,7 @@ public class SquereCityGenerato : MonoBehaviour {
         }
         InteractiveText.text = "City has been Deleted";
     }
+
     public void SaveCityPref() {
         /*
         string path = "Assets/Resources/CityPrefab/";
@@ -292,9 +281,11 @@ public class SquereCityGenerato : MonoBehaviour {
         InteractiveText.text = "A prefab of the city has been saved : " + path + obj.transform.name + ".prefab";*/
         InteractiveText.text = "In Build the saving of the prefab is not allowed. try the editor mode download the asset is free.";
     }
+
     public void Enable(GameObject Obj) {
             Obj.SetActive(true);
     }
+
     public void Disable(GameObject Obj) {
         Obj.SetActive(false);
     }
