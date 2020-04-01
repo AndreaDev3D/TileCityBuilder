@@ -9,7 +9,7 @@ Please don't use it for production as it may **havely** change in the future.
 **Version 0.0.8**</br>
 City Generator
 ![Thumb](https://image.prntscr.com/image/xWklc_2ESoylcoNk1kB39g.jpg)
-![City Generator](https://github.com/AndreaDev3D/TileCityBuilder/blob/master/Screenshot/Beta_v0.0.8_1.gif)
+![City Generator](https://media.giphy.com/media/W6crvXg3Ia290hDiFz/giphy.gif)
 Building Generator
 ![Building Generator](https://media.giphy.com/media/daCw8lvyxqKBMbaF8a/giphy.gif)
 
